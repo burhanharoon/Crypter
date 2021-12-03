@@ -24,6 +24,10 @@ namespace Crypter.Console
             .AddSingleton<DataContext>()
             .AddSingleton<IBaseTransferService<MessageTransfer>, MessageTransferItemService>()
             .AddSingleton<IBaseTransferService<FileTransfer>, FileTransferItemService>()
+            .AddSingleton<IUserPrivacySetting, UserPrivacySetting>()
+            .AddSingleton<IUserProfileService, UserProfileService>()
+            .AddSingleton<IUserSearchService, UserSearchService>()
+            .AddSingleton<IUserService, UserService>()
             .BuildServiceProvider();
 
          if (args == null || args.Length == 0 || HelpRequired(args[0]))
@@ -92,6 +96,23 @@ namespace Crypter.Console
             return 0;
          }
 
+         if (RequestDeleteUser(args[0]))
+         {
+            if (args.Length < 2)
+            {
+               System.Console.WriteLine("This command requires a username string as the second argument");
+               return -2;
+            }
+
+            string username = args[1];
+            var deleteUser = new DeleteUser(serviceProvider.GetService<IUserService>());
+            if (!await deleteUser.RunAsync(username))
+            {
+               System.Console.WriteLine($"The Username \"{username}\" does not exist.");
+            }
+            return 0;            
+         }
+
          Help.DisplayHelp();
          return -1;
       }
@@ -120,5 +141,9 @@ namespace Crypter.Console
       {
          return param == "--delete-schema";
       }
-   }
+      private static bool RequestDeleteUser(string param)
+      {
+         return param == "--delete-user";
+      }
+    }
 }
